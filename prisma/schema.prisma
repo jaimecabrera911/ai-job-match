@@ -1,0 +1,136 @@
+// prisma generate
+// prisma migrate dev --name init
+// npx prisma studio
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id                    Int                  @id @default(autoincrement())
+  username              String               @unique
+  email                 String               @unique
+  password              String
+  role                  String
+  personalInformation   PersonalInformation? @relation(fields: [personalInformationId], references: [id])
+  personalInformationId Int
+  curriculums           Curriculum[]
+  offers                Offer[]
+}
+
+model PersonalInformation {
+  id        Int    @id @default(autoincrement())
+  fullName  String
+  address   String
+  city      String
+  gender    String
+  cellphone String
+  users     User[]
+}
+
+model Curriculum {
+  id        Int                      @id @default(autoincrement())
+  uuid      String?                  @default(cuid())
+  profile   String
+  user      User                     @relation(fields: [userId], references: [id])
+  work      Work[]
+  applies   Apply[]
+  education Education[]
+  projects  Project[]
+  skills    SkillsOnCurriculum[]
+  languages LanguagesOnCurriculums[]
+  userId    Int
+}
+
+model Work {
+  id               Int        @id @default(autoincrement())
+  company          String
+  position         String
+  description      String
+  startDate        String
+  endDate          String
+  currentlyWorking Boolean
+  curriculum       Curriculum @relation(fields: [curriculumId], references: [id])
+  curriculumId     Int
+}
+
+model Education {
+  id                Int        @id @default(autoincrement())
+  institution       String
+  grade             String
+  startDate         String
+  endDate           String
+  currentlyStudying Boolean
+  curriculum        Curriculum @relation(fields: [curriculumId], references: [id])
+  curriculumId      Int
+}
+
+model Project {
+  id                   Int        @id @default(autoincrement())
+  institutionOrCompany String
+  description          String
+  startDate            String
+  endDate              String
+  curriculum           Curriculum @relation(fields: [curriculumId], references: [id])
+  curriculumId         Int
+}
+
+model Language {
+  id          Int                      @id @default(autoincrement())
+  name        String
+  curriculums LanguagesOnCurriculums[]
+}
+
+model LanguagesOnCurriculums {
+  language     Language   @relation(fields: [languageId], references: [id])
+  languageId   Int
+  curriculum   Curriculum @relation(fields: [curriculumId], references: [id])
+  curriculumId Int
+  level        String
+
+  @@id([languageId, curriculumId])
+}
+
+model Offer {
+  id               Int     @id @default(autoincrement())
+  uuid             String  @default(cuid())
+  title            String
+  description      String
+  company          String
+  location         String
+  requirements     String
+  responsibilities String
+  benefits         String
+  applies          Apply[]
+  user             User?   @relation(fields: [userId], references: [id])
+  userId           Int
+}
+
+model Apply {
+  id           Int        @id @default(autoincrement())
+  analysis     String
+  score        Decimal
+  Curriculum   Curriculum @relation(fields: [curriculumId], references: [id])
+  curriculumId Int
+  offer        Offer      @relation(fields: [offerId], references: [id])
+  offerId      Int
+}
+
+model SkillsOnCurriculum {
+  skill        Skill      @relation(fields: [skillId], references: [id])
+  skillId      Int
+  curriculum   Curriculum @relation(fields: [curriculumId], references: [id])
+  curriculumId Int
+
+  @@id([skillId, curriculumId])
+}
+
+model Skill {
+  id          Int                  @id @default(autoincrement())
+  name        String
+  curriculums SkillsOnCurriculum[]
+}
